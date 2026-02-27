@@ -9,8 +9,8 @@
   --color-surface: #ffffff;
   --color-text: #333333;
   --color-text-light: #7f8c8d;
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
   --radius: 12px;
 }
 
@@ -157,7 +157,7 @@ button:active {
   padding: 2rem;
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 .modal-header {
@@ -220,4 +220,115 @@ button:active {
 
 .point-label {
   font-weight: 600;
+}
+
+/* Auth Component Styles */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.auth-card {
+  background-color: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 3rem 2rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.auth-card h2 {
+  color: var(--color-secondary);
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--color-secondary);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e0e6ed;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.auth-submit-btn {
+  width: 100%;
+  background-color: var(--color-primary);
+  color: white;
+  padding: 1rem;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.auth-submit-btn:hover {
+  background-color: #2980b9;
+}
+
+.auth-toggle {
+  color: var(--color-text-light);
+  font-size: 0.95rem;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 600;
+  padding: 0;
+  margin-left: 0.25rem;
+}
+
+.toggle-btn:hover {
+  text-decoration: underline;
+}
+
+.auth-error {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: var(--color-negative);
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.header-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.logout-btn {
+  background-color: transparent;
+  color: var(--color-secondary);
+  border: 2px solid #e0e6ed;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+.logout-btn:hover {
+  background-color: #e0e6ed;
 }

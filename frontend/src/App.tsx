@@ -1,23 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Classroom, Student } from './types';
+import { Classroom, Student, User } from './types';
 import { StudentCard } from './components/StudentCard';
 import { AddPointModal } from './components/AddPointModal';
+import { Auth } from './components/Auth';
 
 const API_BASE = 'http://localhost:8080/api';
 
 function App() {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [classroom, setClassroom] = useState<Classroom | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize data
+  // Initialize data once user is logged in
   useEffect(() => {
+    if (!currentUser) return;
+
+    setLoading(true);
     const initData = async () => {
       try {
-        // 1. Fetch classrooms, create one if it doesn't exist
-        let classroomsRes = await fetch(`${API_BASE}/classrooms`);
+        // 1. Fetch classrooms for logged-in user
+        let classroomsRes = await fetch(`${API_BASE}/classrooms?userId=${currentUser.id}`);
         let classrooms: Classroom[] = await classroomsRes.json();
 
         let targetClassroom;
@@ -25,7 +30,7 @@ function App() {
           const createRes = await fetch(`${API_BASE}/classrooms`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: 'My Homeroom' })
+            body: JSON.stringify({ name: 'My Homeroom', userId: currentUser.id })
           });
           targetClassroom = await createRes.json();
         } else {
@@ -47,7 +52,7 @@ function App() {
     };
 
     initData();
-  }, []);
+  }, [currentUser]);
 
   const handleAddStudent = async () => {
     if (!classroom) {
@@ -87,6 +92,17 @@ function App() {
     }
   };
 
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setClassroom(null);
+    setStudents([]);
+    setError(null);
+  };
+
+  if (!currentUser) {
+    return <Auth onLogin={setCurrentUser} />;
+  }
+
   if (loading) return <div>Loading HomeroomPlus...</div>;
   if (error) return <div style={{ padding: '2rem', color: 'red', textAlign: 'center' }}><h2>Connection Error</h2><p>{error}</p></div>;
 
@@ -94,9 +110,14 @@ function App() {
     <div className="app-container">
       <header className="header">
         <h1>{classroom?.name || 'Classroom'}</h1>
-        <button className="add-student-btn" onClick={handleAddStudent}>
-          + Add Student
-        </button>
+        <div className="header-controls">
+          <button className="add-student-btn" onClick={handleAddStudent}>
+            + Add Student
+          </button>
+          <button className="logout-btn" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </header>
 
       <main>
