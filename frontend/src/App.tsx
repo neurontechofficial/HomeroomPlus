@@ -1,35 +1,117 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState, useEffect } from 'react';
+import { Classroom, Student } from './types';
+import { StudentCard } from './components/StudentCard';
+import { AddPointModal } from './components/AddPointModal';
+
+const API_BASE = 'http://localhost:8080/api';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [classroom, setClassroom] = useState<Classroom | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Initialize data
+  useEffect(() => {
+    const initData = async () => {
+      try {
+        // 1. Fetch classrooms, create one if it doesn't exist
+        let classroomsRes = await fetch(`${API_BASE}/classrooms`);
+        let classrooms: Classroom[] = await classroomsRes.json();
+
+        let targetClassroom;
+        if (classrooms.length === 0) {
+          const createRes = await fetch(`${API_BASE}/classrooms`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: 'My Homeroom' })
+          });
+          targetClassroom = await createRes.json();
+        } else {
+          targetClassroom = classrooms[0];
+        }
+
+        setClassroom(targetClassroom);
+
+        // 2. Fetch students for this classroom
+        const studentsRes = await fetch(`${API_BASE}/classrooms/${targetClassroom.id}/students`);
+        const studentsData: Student[] = await studentsRes.json();
+        setStudents(studentsData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initData();
+  }, []);
+
+  const handleAddStudent = async () => {
+    if (!classroom) return;
+
+    const name = prompt("Enter student's name:");
+    if (!name) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/students`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, classroomId: classroom.id, avatarUrl: '' })
+      });
+      const newStudent = await res.json();
+      setStudents([...students, newStudent]);
+    } catch (error) {
+      console.error('Failed to add student', error);
+    }
+  };
+
+  const handleAddPoint = async (studentId: number, points: number, description: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/students/${studentId}/points`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ points, description })
+      });
+      const updatedStudent = await res.json();
+
+      setStudents(students.map(s => s.id === studentId ? updatedStudent : s));
+      setSelectedStudent(null);
+    } catch (error) {
+      console.error('Failed to add points', error);
+    }
+  };
+
+  if (loading) return <div>Loading HomeroomPlus...</div>;
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="app-container">
+      <header className="header">
+        <h1>{classroom?.name || 'Classroom'}</h1>
+        <button className="add-student-btn" onClick={handleAddStudent}>
+          + Add Student
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      </header>
+
+      <main>
+        <div className="student-grid">
+          {students.map(student => (
+            <StudentCard
+              key={student.id}
+              student={student}
+              onClick={setSelectedStudent}
+            />
+          ))}
+        </div>
+      </main>
+
+      <AddPointModal
+        student={selectedStudent}
+        onClose={() => setSelectedStudent(null)}
+        onAddPoint={handleAddPoint}
+      />
+    </div>
+  );
 }
 
-export default App
+export default App;
