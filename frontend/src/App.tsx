@@ -10,6 +10,7 @@ function App() {
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Initialize data
   useEffect(() => {
@@ -39,6 +40,7 @@ function App() {
         setStudents(studentsData);
       } catch (error) {
         console.error('Error fetching data:', error);
+        setError('Could not connect to the backend server. Is Spring Boot running on port 8080?');
       } finally {
         setLoading(false);
       }
@@ -48,7 +50,10 @@ function App() {
   }, []);
 
   const handleAddStudent = async () => {
-    if (!classroom) return;
+    if (!classroom) {
+      alert("Error: Cannot add student because the classroom was not loaded. Please ensure the backend server is running.");
+      return;
+    }
 
     const name = prompt("Enter student's name:");
     if (!name) return;
@@ -83,6 +88,7 @@ function App() {
   };
 
   if (loading) return <div>Loading HomeroomPlus...</div>;
+  if (error) return <div style={{ padding: '2rem', color: 'red', textAlign: 'center' }}><h2>Connection Error</h2><p>{error}</p></div>;
 
   return (
     <div className="app-container">
