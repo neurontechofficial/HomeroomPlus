@@ -38,11 +38,11 @@ public class MailerooService {
         Map<String, Object> payload = new HashMap<>();
 
         Map<String, String> fromMap = new HashMap<>();
-        fromMap.put("email", fromEmail);
-        fromMap.put("name", fromName);
+        fromMap.put("address", fromEmail);
+        fromMap.put("display_name", fromName);
         payload.put("from", fromMap);
 
-        payload.put("to", toEmail);
+        payload.put("to", java.util.Collections.singletonMap("address", toEmail));
 
         String action = points >= 0 ? "awarded" : "deducted";
         int absPoints = Math.abs(points);
@@ -64,7 +64,7 @@ public class MailerooService {
 
             // If secretary email is configured, send a copy to them as well
             if (secretaryEmail != null && !secretaryEmail.trim().isEmpty() && !secretaryEmail.equals(toEmail)) {
-                payload.put("to", secretaryEmail);
+                payload.put("to", java.util.Collections.singletonMap("address", secretaryEmail));
                 payload.put("subject", "[SECRETARY COPY] " + payload.get("subject"));
                 HttpEntity<Map<String, Object>> secretaryRequest = new HttpEntity<>(payload, headers);
                 restTemplate.postForEntity(MAILEROO_API_URL, secretaryRequest, String.class);
