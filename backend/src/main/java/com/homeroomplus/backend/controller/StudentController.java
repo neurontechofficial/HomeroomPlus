@@ -25,32 +25,42 @@ public class StudentController {
     @PostMapping
     public ResponseEntity<Student> createStudent(@RequestBody CreateStudentRequest request) {
         Optional<Classroom> classroom = classroomRepository.findById(request.getClassroomId());
-        if (classroom.isEmpty()) return ResponseEntity.badRequest().build();
+        if (classroom.isEmpty())
+            return ResponseEntity.badRequest().build();
 
         Student student = new Student();
         student.setName(request.getName());
         student.setAvatarUrl(request.getAvatarUrl());
         student.setClassroom(classroom.get());
-        
+
         return ResponseEntity.ok(studentRepository.save(student));
     }
 
     @PostMapping("/{id}/points")
     public ResponseEntity<Student> addPoint(@PathVariable Long id, @RequestBody AddPointRequest request) {
         Optional<Student> studentOpt = studentRepository.findById(id);
-        if (studentOpt.isEmpty()) return ResponseEntity.notFound().build();
+        if (studentOpt.isEmpty())
+            return ResponseEntity.notFound().build();
 
         Student student = studentOpt.get();
-        
+
         BehaviorRecord record = new BehaviorRecord();
         record.setDescription(request.getDescription());
         record.setPoints(request.getPoints());
         record.setStudent(student);
-        
+
         behaviorRecordRepository.save(record);
-        
+
         // Refresh student to include new record in total points mapping
         return ResponseEntity.ok(studentRepository.findById(id).get());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
+        if (!studentRepository.existsById(id))
+            return ResponseEntity.notFound().build();
+        studentRepository.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 
     @Data

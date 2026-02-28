@@ -8,6 +8,7 @@ const API_BASE = 'http://localhost:8080/api'; // this is where spring boot runs
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [classroom, setClassroom] = useState<Classroom | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -23,20 +24,22 @@ function App() {
       try {
         // 1. Fetch classrooms for logged-in user
         let classroomsRes = await fetch(`${API_BASE}/classrooms?userId=${currentUser.id}`);
-        let classrooms: Classroom[] = await classroomsRes.json();
+        let fetchedClassrooms: Classroom[] = await classroomsRes.json();
 
         let targetClassroom;
-        if (classrooms.length === 0) {
+        if (fetchedClassrooms.length === 0) {
           const createRes = await fetch(`${API_BASE}/classrooms`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: 'My Homeroom', userId: currentUser.id })
           });
           targetClassroom = await createRes.json();
+          fetchedClassrooms = [targetClassroom];
         } else {
-          targetClassroom = classrooms[0];
+          targetClassroom = fetchedClassrooms[0];
         }
 
+        setClassrooms(fetchedClassrooms);
         setClassroom(targetClassroom);
 
         // 2. Fetch students for this classroom
@@ -53,6 +56,36 @@ function App() {
 
     initData();
   }, [currentUser]);
+
+  const handleClassroomChange = async (classroomId: number) => {
+    const target = classrooms.find(c => c.id === classroomId);
+    if (!target) return;
+
+    setClassroom(target);
+    const studentsRes = await fetch(`${API_BASE}/classrooms/${target.id}/students`);
+    const studentsData: Student[] = await studentsRes.json();
+    setStudents(studentsData);
+  };
+
+  const handleCreateClassroom = async () => {
+    if (!currentUser) return;
+    const name = prompt("Enter new classroom name:");
+    if (!name) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/classrooms`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, userId: currentUser.id })
+      });
+      const newClassroom = await res.json();
+      setClassrooms([...classrooms, newClassroom]);
+      setClassroom(newClassroom);
+      setStudents([]); // Empty students for new class
+    } catch (error) {
+      console.error('Failed to create classroom', error);
+    }
+  };
 
   const handleAddStudent = async () => {
     if (!classroom) {
@@ -92,8 +125,22 @@ function App() {
     }
   };
 
+  const handleDeleteStudent = async (student: Student) => {
+    if (!confirm(`Are you sure you want to remove ${student.name}?`)) return;
+
+    try {
+      await fetch(`${API_BASE}/students/${student.id}`, {
+        method: 'DELETE'
+      });
+      setStudents(students.filter(s => s.id !== student.id));
+    } catch (error) {
+      console.error('Failed to delete student', error);
+    }
+  };
+
   const handleLogout = () => {
     setCurrentUser(null);
+    setClassrooms([]);
     setClassroom(null);
     setStudents([]);
     setError(null);
@@ -109,7 +156,20 @@ function App() {
   return (
     <div className="app-container">
       <header className="header">
-        <h1>{classroom?.name || 'Classroom'}</h1>
+        <div className="classroom-selector">
+          <select
+            value={classroom?.id || ''}
+            onChange={(e) => handleClassroomChange(Number(e.target.value))}
+            className="classroom-dropdown"
+          >
+            {classrooms.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <button className="create-class-btn" onClick={handleCreateClassroom}>
+            + New Class
+          </button>
+        </div>
         <div className="header-controls">
           <button className="add-student-btn" onClick={handleAddStudent}>
             + Add Student
@@ -127,6 +187,7 @@ function App() {
               key={student.id}
               student={student}
               onClick={setSelectedStudent}
+              onDelete={handleDeleteStudent}
             />
           ))}
         </div>
