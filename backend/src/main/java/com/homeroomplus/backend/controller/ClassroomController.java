@@ -50,6 +50,15 @@ public class ClassroomController {
         return ResponseEntity.ok(studentRepository.findByClassroom_Id(id));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteClassroom(@PathVariable Long id) {
+        if (!classroomRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        classroomRepository.deleteById(id);
+        return ResponseEntity.ok().build();
+    }
+
     @Data
     public static class CreateClassroomRequest {
         private String name;

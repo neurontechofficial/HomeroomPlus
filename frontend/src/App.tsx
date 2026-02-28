@@ -87,6 +87,30 @@ function App() {
     }
   };
 
+  const handleDeleteClassroom = async () => {
+    if (!classroom) return;
+    if (!confirm(`Are you sure you want to delete the classroom "${classroom.name}" and all its students?`)) return;
+
+    try {
+      await fetch(`${API_BASE}/classrooms/${classroom.id}`, {
+        method: 'DELETE'
+      });
+
+      const newClassrooms = classrooms.filter(c => c.id !== classroom.id);
+      setClassrooms(newClassrooms);
+
+      if (newClassrooms.length > 0) {
+        // Switch to the first available class
+        handleClassroomChange(newClassrooms[0].id);
+      } else {
+        setClassroom(null);
+        setStudents([]);
+      }
+    } catch (error) {
+      console.error('Failed to delete classroom', error);
+    }
+  };
+
   const handleAddStudent = async () => {
     if (!classroom) {
       alert("Error: Cannot add student because the classroom was not loaded. Please ensure the backend server is running.");
@@ -169,6 +193,11 @@ function App() {
           <button className="create-class-btn" onClick={handleCreateClassroom}>
             + New Class
           </button>
+          {classroom && (
+            <button className="delete-class-btn" onClick={handleDeleteClassroom} title="Delete Classroom">
+              &times;
+            </button>
+          )}
         </div>
         <div className="header-controls">
           <button className="add-student-btn" onClick={handleAddStudent}>
