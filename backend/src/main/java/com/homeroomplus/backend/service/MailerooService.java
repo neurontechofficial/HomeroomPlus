@@ -23,7 +23,7 @@ public class MailerooService {
     private String fromName;
 
     private final RestTemplate restTemplate = new RestTemplate();
-    private static final String MAILEROO_API_URL = "https://smtp.maileroo.com/api/v2/emails/send";
+    private static final String MAILEROO_API_URL = "https://smtp.maileroo.com/api/v2/emails";
 
     public void sendPointsEmail(String toEmail, String secretaryEmail, String studentName, int points,
             String description) {
