@@ -4,7 +4,7 @@ import { StudentCard } from './components/StudentCard';
 import { AddPointModal } from './components/AddPointModal';
 import { Auth } from './components/Auth';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'http://localhost:8080/api'; // this is where spring boot runs
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
