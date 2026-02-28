@@ -183,12 +183,47 @@ function App() {
     setError(null);
   };
 
+  const isThisWeek = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+    startOfWeek.setHours(0, 0, 0, 0);
+    return date >= startOfWeek;
+  };
+
+  const isThisMonth = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return date >= startOfMonth;
+  };
+
+  const calculatePoints = (studentList: Student[], filter?: (date: string) => boolean) => {
+    let positives = 0;
+    let negatives = 0;
+
+    studentList.forEach(s => {
+      s.behaviorRecords.forEach(r => {
+        if (!filter || filter(r.createdAt)) {
+          if (r.points > 0) positives += r.points;
+          else negatives += r.points;
+        }
+      });
+    });
+
+    return { positives, negatives: Math.abs(negatives) };
+  };
+
   if (!currentUser) {
     return <Auth onLogin={setCurrentUser} />;
   }
 
   if (loading) return <div>Loading HomeroomPlus...</div>;
   if (error) return <div style={{ padding: '2rem', color: 'red', textAlign: 'center' }}><h2>Connection Error</h2><p>{error}</p></div>;
+
+  const allTime = calculatePoints(students);
+  const thisWeek = calculatePoints(students, isThisWeek);
+  const thisMonth = calculatePoints(students, isThisMonth);
 
   return (
     <div className="app-container">
@@ -228,26 +263,55 @@ function App() {
 
       <main>
         {classroom && students.length > 0 && (
-          <div className="dashboard">
-            <div className="dashboard-card total-students">
-              <h3>{students.length}</h3>
-              <p>Students</p>
-            </div>
-            <div className="dashboard-card total-positives">
-              <h3>
-                {students.reduce((acc, s) => acc + s.behaviorRecords.filter(r => r.points > 0).reduce((sum, r) => sum + r.points, 0), 0)}
-              </h3>
-              <p>Positive Points</p>
-            </div>
-            <div className="dashboard-card total-negatives">
-              <h3>
-                {Math.abs(students.reduce((acc, s) => acc + s.behaviorRecords.filter(r => r.points < 0).reduce((sum, r) => sum + r.points, 0), 0))}
-              </h3>
-              <p>Negative Points</p>
+          <div className="dashboard-wrapper">
+            <h2 className="dashboard-title">Class Performance</h2>
+            <div className="dashboard-grid">
+              <div className="dashboard-section">
+                <h4>All Time</h4>
+                <div className="dashboard-stats">
+                  <div className="stat-card positive">
+                    <span className="stat-value">+{allTime.positives}</span>
+                    <span className="stat-label">Positives</span>
+                  </div>
+                  <div className="stat-card negative">
+                    <span className="stat-value">-{allTime.negatives}</span>
+                    <span className="stat-label">Negatives</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="dashboard-section">
+                <h4>This Month</h4>
+                <div className="dashboard-stats">
+                  <div className="stat-card positive">
+                    <span className="stat-value">+{thisMonth.positives}</span>
+                    <span className="stat-label">Positives</span>
+                  </div>
+                  <div className="stat-card negative">
+                    <span className="stat-value">-{thisMonth.negatives}</span>
+                    <span className="stat-label">Negatives</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="dashboard-section">
+                <h4>This Week</h4>
+                <div className="dashboard-stats">
+                  <div className="stat-card positive">
+                    <span className="stat-value">+{thisWeek.positives}</span>
+                    <span className="stat-label">Positives</span>
+                  </div>
+                  <div className="stat-card negative">
+                    <span className="stat-value">-{thisWeek.negatives}</span>
+                    <span className="stat-label">Negatives</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
         <div className="student-grid">
+
 
           {students.map(student => (
             <StudentCard
