@@ -8,7 +8,7 @@ interface AuthProps {
 const API_BASE = 'http://localhost:8080/api/auth';
 
 export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
-    const [isLogin, setIsLogin] = useState(true);
+    const [isLogin] = useState(true);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -43,7 +43,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     return (
         <div className="auth-container">
             <div className="auth-card">
-                <h2>{isLogin ? 'Welcome Back!' : 'Create an Account'}</h2>
+                <h2>Welcome Back!</h2>
                 {error && <div className="auth-error">{error}</div>}
 
                 <form onSubmit={handleSubmit}>
@@ -66,17 +66,12 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                         />
                     </div>
                     <button type="submit" className="auth-submit-btn">
-                        {isLogin ? 'Log In' : 'Sign Up'}
+                        Log In
                     </button>
                 </form>
-
-                <p className="auth-toggle">
-                    {isLogin ? "Don't have an account? " : "Already have an account? "}
-                    <button className="toggle-btn" onClick={() => setIsLogin(!isLogin)}>
-                        {isLogin ? 'Sign up' : 'Log in'}
-                    </button>
-                </p>
             </div>
         </div>
     );
 };
+
+

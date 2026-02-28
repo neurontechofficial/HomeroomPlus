@@ -14,7 +14,51 @@
   --radius: 12px;
 }
 
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.dashboard-card {
+  background-color: var(--color-surface);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  border-bottom: 4px solid #e0e6ed;
+}
+
+.dashboard-card h3 {
+  font-size: 2.5rem;
+  margin: 0;
+  color: var(--color-secondary);
+}
+
+.dashboard-card p {
+  margin: 0.5rem 0 0;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+}
+
+.total-students {
+  border-color: var(--color-primary);
+}
+
+.total-positives {
+  border-color: var(--color-positive);
+}
+
+.total-negatives {
+  border-color: var(--color-negative);
+}
+
 * {
+
   box-sizing: border-box;
   margin: 0;
   padding: 0;

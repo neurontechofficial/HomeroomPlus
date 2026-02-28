@@ -221,7 +221,28 @@ function App() {
       </header>
 
       <main>
+        {classroom && students.length > 0 && (
+          <div className="dashboard">
+            <div className="dashboard-card total-students">
+              <h3>{students.length}</h3>
+              <p>Students</p>
+            </div>
+            <div className="dashboard-card total-positives">
+              <h3>
+                {students.reduce((acc, s) => acc + s.behaviorRecords.filter(r => r.points > 0).reduce((sum, r) => sum + r.points, 0), 0)}
+              </h3>
+              <p>Positive Points</p>
+            </div>
+            <div className="dashboard-card total-negatives">
+              <h3>
+                {Math.abs(students.reduce((acc, s) => acc + s.behaviorRecords.filter(r => r.points < 0).reduce((sum, r) => sum + r.points, 0), 0))}
+              </h3>
+              <p>Negative Points</p>
+            </div>
+          </div>
+        )}
         <div className="student-grid">
+
           {students.map(student => (
             <StudentCard
               key={student.id}

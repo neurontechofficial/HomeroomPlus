@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -22,6 +21,9 @@ public class MailerooService {
 
     @Value("${maileroo.from.name:HomeroomPlus}")
     private String fromName;
+
+    @Value("${maileroo.secretary.email:}")
+    private String secretaryEmail;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private static final String MAILEROO_API_URL = "https://smtp.maileroo.com/api/v2/emails/send";
@@ -60,8 +62,15 @@ public class MailerooService {
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
 
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(MAILEROO_API_URL, request, String.class);
-            System.out.println("Maileroo API Response: " + response.getStatusCode() + " - " + response.getBody());
+            restTemplate.postForEntity(MAILEROO_API_URL, request, String.class);
+
+            // If secretary email is configured, send a copy to them as well
+            if (secretaryEmail != null && !secretaryEmail.trim().isEmpty() && !secretaryEmail.equals(toEmail)) {
+                payload.put("to", secretaryEmail);
+                payload.put("subject", "[SECRETARY COPY] " + payload.get("subject"));
+                HttpEntity<Map<String, Object>> secretaryRequest = new HttpEntity<>(payload, headers);
+                restTemplate.postForEntity(MAILEROO_API_URL, secretaryRequest, String.class);
+            }
         } catch (Exception e) {
             System.err.println("Failed to send email via Maileroo: " + e.getMessage());
         }
