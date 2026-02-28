@@ -6,6 +6,7 @@ import com.homeroomplus.backend.model.Student;
 import com.homeroomplus.backend.repository.BehaviorRecordRepository;
 import com.homeroomplus.backend.repository.ClassroomRepository;
 import com.homeroomplus.backend.repository.StudentRepository;
+import com.homeroomplus.backend.service.MailerooService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ public class StudentController {
     private final StudentRepository studentRepository;
     private final ClassroomRepository classroomRepository;
     private final BehaviorRecordRepository behaviorRecordRepository;
+    private final MailerooService mailerooService;
 
     @PostMapping
     public ResponseEntity<Student> createStudent(@RequestBody CreateStudentRequest request) {
@@ -31,6 +33,8 @@ public class StudentController {
         Student student = new Student();
         student.setName(request.getName());
         student.setAvatarUrl(request.getAvatarUrl());
+        student.setStudentEmail(request.getStudentEmail());
+        student.setParentEmail(request.getParentEmail());
         student.setClassroom(classroom.get());
 
         return ResponseEntity.ok(studentRepository.save(student));
@@ -51,6 +55,16 @@ public class StudentController {
 
         behaviorRecordRepository.save(record);
 
+        // Send emails
+        if (student.getStudentEmail() != null && !student.getStudentEmail().trim().isEmpty()) {
+            mailerooService.sendPointsEmail(student.getStudentEmail(), student.getName(), request.getPoints(),
+                    request.getDescription());
+        }
+        if (student.getParentEmail() != null && !student.getParentEmail().trim().isEmpty()) {
+            mailerooService.sendPointsEmail(student.getParentEmail(), student.getName(), request.getPoints(),
+                    request.getDescription());
+        }
+
         // Refresh student to include new record in total points mapping
         return ResponseEntity.ok(studentRepository.findById(id).get());
     }
@@ -67,6 +81,8 @@ public class StudentController {
     public static class CreateStudentRequest {
         private String name;
         private String avatarUrl;
+        private String studentEmail;
+        private String parentEmail;
         private Long classroomId;
     }
 

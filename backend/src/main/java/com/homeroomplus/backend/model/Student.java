@@ -20,6 +20,12 @@ public class Student {
 
     private String avatarUrl;
 
+    @Column
+    private String studentEmail;
+
+    @Column
+    private String parentEmail;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "classroom_id", nullable = false)
     @JsonIgnore
@@ -27,11 +33,12 @@ public class Student {
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BehaviorRecord> behaviorRecords = new ArrayList<>();
-    
+
     // Virtual property for easier DB-free total mapping
     @Transient
     public int getTotalPoints() {
-        if (behaviorRecords == null) return 0;
+        if (behaviorRecords == null)
+            return 0;
         return behaviorRecords.stream().mapToInt(BehaviorRecord::getPoints).sum();
     }
 }

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Classroom, Student, User } from './types';
 import { StudentCard } from './components/StudentCard';
 import { AddPointModal } from './components/AddPointModal';
 import { Auth } from './components/Auth';
+import { AddStudentModal } from './components/AddStudentModal';
 
 const API_BASE = 'http://localhost:8080/api'; // this is where spring boot runs
 
@@ -12,6 +13,7 @@ function App() {
   const [classroom, setClassroom] = useState<Classroom | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -111,23 +113,32 @@ function App() {
     }
   };
 
-  const handleAddStudent = async () => {
+  const handleAddStudentClick = () => {
     if (!classroom) {
       alert("Error: Cannot add student because the classroom was not loaded. Please ensure the backend server is running.");
       return;
     }
+    setShowAddStudentModal(true);
+  };
 
-    const name = prompt("Enter student's name:");
-    if (!name) return;
+  const handleCreateStudent = async (name: string, studentEmail: string, parentEmail: string) => {
+    if (!classroom) return;
 
     try {
       const res = await fetch(`${API_BASE}/students`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, classroomId: classroom.id, avatarUrl: '' })
+        body: JSON.stringify({
+          name,
+          studentEmail,
+          parentEmail,
+          classroomId: classroom.id,
+          avatarUrl: ''
+        })
       });
       const newStudent = await res.json();
       setStudents([...students, newStudent]);
+      setShowAddStudentModal(false);
     } catch (error) {
       console.error('Failed to add student', error);
     }
@@ -200,7 +211,7 @@ function App() {
           )}
         </div>
         <div className="header-controls">
-          <button className="add-student-btn" onClick={handleAddStudent}>
+          <button className="add-student-btn" onClick={handleAddStudentClick}>
             + Add Student
           </button>
           <button className="logout-btn" onClick={handleLogout}>
@@ -227,6 +238,13 @@ function App() {
         onClose={() => setSelectedStudent(null)}
         onAddPoint={handleAddPoint}
       />
+
+      {showAddStudentModal && (
+        <AddStudentModal
+          onClose={() => setShowAddStudentModal(false)}
+          onAddStudent={handleCreateStudent}
+        />
+      )}
     </div>
   );
 }

@@ -9,6 +9,8 @@ export interface Student {
     id: number;
     name: string;
     avatarUrl: string;
+    studentEmail?: string;
+    parentEmail?: string;
     totalPoints: number;
     behaviorRecords: BehaviorRecord[];
 }
