@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Classroom, Student, User } from './types';
+import { Classroom, Student, User, SchoolStats } from './types';
 import { StudentCard } from './components/StudentCard';
 import { AddPointModal } from './components/AddPointModal';
 import { Auth } from './components/Auth';
@@ -16,6 +16,8 @@ function App() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [schoolStats, setSchoolStats] = useState<SchoolStats | null>(null);
+  const [dashboardMode, setDashboardMode] = useState<'class' | 'school'>('class');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +26,18 @@ function App() {
     if (!currentUser) return;
 
     setLoading(true);
+    const fetchSchoolStats = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/stats/school`);
+        if (res.ok) {
+          const data = await res.json();
+          setSchoolStats(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch school stats', err);
+      }
+    };
+
     const initData = async () => {
       try {
         // 1. Fetch classrooms for logged-in user
@@ -50,6 +64,8 @@ function App() {
         const studentsRes = await fetch(`${API_BASE}/classrooms/${targetClassroom.id}/students`);
         const studentsData: Student[] = await studentsRes.json();
         setStudents(studentsData);
+
+        fetchSchoolStats();
       } catch (error) {
         console.error('Error fetching data:', error);
         setError('Could not connect to the backend server. Is Spring Boot running on port 8080?');
@@ -157,7 +173,14 @@ function App() {
 
       setStudents(students.map(s => s.id === studentId ? updatedStudent : s));
       setSelectedStudent(null);
+
+      // Refresh school stats
+      fetch(`${API_BASE}/stats/school`)
+        .then(res => res.json())
+        .then(data => setSchoolStats(data))
+        .catch(err => console.error('Failed to refresh school stats', err));
     } catch (error) {
+
       console.error('Failed to add points', error);
     }
   };
@@ -262,55 +285,123 @@ function App() {
       </header>
 
       <main>
-        {classroom && students.length > 0 && (
+        {classroom && (
           <div className="dashboard-wrapper">
-            <h2 className="dashboard-title">Class Performance</h2>
-            <div className="dashboard-grid">
-              <div className="dashboard-section">
-                <h4>All Time</h4>
-                <div className="dashboard-stats">
-                  <div className="stat-card positive">
-                    <span className="stat-value">+{allTime.positives}</span>
-                    <span className="stat-label">Positives</span>
-                  </div>
-                  <div className="stat-card negative">
-                    <span className="stat-value">-{allTime.negatives}</span>
-                    <span className="stat-label">Negatives</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="dashboard-section">
-                <h4>This Month</h4>
-                <div className="dashboard-stats">
-                  <div className="stat-card positive">
-                    <span className="stat-value">+{thisMonth.positives}</span>
-                    <span className="stat-label">Positives</span>
-                  </div>
-                  <div className="stat-card negative">
-                    <span className="stat-value">-{thisMonth.negatives}</span>
-                    <span className="stat-label">Negatives</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="dashboard-section">
-                <h4>This Week</h4>
-                <div className="dashboard-stats">
-                  <div className="stat-card positive">
-                    <span className="stat-value">+{thisWeek.positives}</span>
-                    <span className="stat-label">Positives</span>
-                  </div>
-                  <div className="stat-card negative">
-                    <span className="stat-value">-{thisWeek.negatives}</span>
-                    <span className="stat-label">Negatives</span>
-                  </div>
-                </div>
+            <div className="dashboard-header">
+              <h2 className="dashboard-title">
+                {dashboardMode === 'class' ? 'Class Performance' : 'Whole School Performance'}
+              </h2>
+              <div className="dashboard-toggle">
+                <button
+                  className={dashboardMode === 'class' ? 'active' : ''}
+                  onClick={() => setDashboardMode('class')}
+                >
+                  My Class
+                </button>
+                <button
+                  className={dashboardMode === 'school' ? 'active' : ''}
+                  onClick={() => setDashboardMode('school')}
+                >
+                  Whole School
+                </button>
               </div>
             </div>
+
+            {dashboardMode === 'class' ? (
+              <div className="dashboard-grid">
+                <div className="dashboard-section">
+                  <h4>All Time</h4>
+                  <div className="dashboard-stats">
+                    <div className="stat-card positive">
+                      <span className="stat-value">+{allTime.positives}</span>
+                      <span className="stat-label">Positives</span>
+                    </div>
+                    <div className="stat-card negative">
+                      <span className="stat-value">-{allTime.negatives}</span>
+                      <span className="stat-label">Negatives</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="dashboard-section">
+                  <h4>This Month</h4>
+                  <div className="dashboard-stats">
+                    <div className="stat-card positive">
+                      <span className="stat-value">+{thisMonth.positives}</span>
+                      <span className="stat-label">Positives</span>
+                    </div>
+                    <div className="stat-card negative">
+                      <span className="stat-value">-{thisMonth.negatives}</span>
+                      <span className="stat-label">Negatives</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="dashboard-section">
+                  <h4>This Week</h4>
+                  <div className="dashboard-stats">
+                    <div className="stat-card positive">
+                      <span className="stat-value">+{thisWeek.positives}</span>
+                      <span className="stat-label">Positives</span>
+                    </div>
+                    <div className="stat-card negative">
+                      <span className="stat-value">-{thisWeek.negatives}</span>
+                      <span className="stat-label">Negatives</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              schoolStats && (
+                <div className="dashboard-grid">
+                  <div className="dashboard-section">
+                    <h4>All Time</h4>
+                    <div className="dashboard-stats">
+                      <div className="stat-card positive">
+                        <span className="stat-value">+{schoolStats.allTimePositives}</span>
+                        <span className="stat-label">Positives</span>
+                      </div>
+                      <div className="stat-card negative">
+                        <span className="stat-value">-{schoolStats.allTimeNegatives}</span>
+                        <span className="stat-label">Negatives</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="dashboard-section">
+                    <h4>This Month</h4>
+                    <div className="dashboard-stats">
+                      <div className="stat-card positive">
+                        <span className="stat-value">+{schoolStats.thisMonthPositives}</span>
+                        <span className="stat-label">Positives</span>
+                      </div>
+                      <div className="stat-card negative">
+                        <span className="stat-value">-{schoolStats.thisMonthNegatives}</span>
+                        <span className="stat-label">Negatives</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="dashboard-section">
+                    <h4>This Week</h4>
+                    <div className="dashboard-stats">
+                      <div className="stat-card positive">
+                        <span className="stat-value">+{schoolStats.thisWeekPositives}</span>
+                        <span className="stat-label">Positives</span>
+                      </div>
+                      <div className="stat-card negative">
+                        <span className="stat-value">-{schoolStats.thisWeekNegatives}</span>
+                        <span className="stat-label">Negatives</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            )}
           </div>
         )}
         <div className="student-grid">
+
 
 
           {students.map(student => (

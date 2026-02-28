@@ -25,3 +25,12 @@ export interface User {
     username: string;
     secretaryEmail?: string;
 }
+
+export interface SchoolStats {
+    allTimePositives: number;
+    allTimeNegatives: number;
+    thisMonthPositives: number;
+    thisMonthNegatives: number;
+    thisWeekPositives: number;
+    thisWeekNegatives: number;
+}
