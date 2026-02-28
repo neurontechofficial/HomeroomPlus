@@ -23,4 +23,5 @@ export interface Classroom {
 export interface User {
     id: number;
     username: string;
+    secretaryEmail?: string;
 }

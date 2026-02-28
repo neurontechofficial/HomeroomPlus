@@ -4,6 +4,7 @@ import { StudentCard } from './components/StudentCard';
 import { AddPointModal } from './components/AddPointModal';
 import { Auth } from './components/Auth';
 import { AddStudentModal } from './components/AddStudentModal';
+import { SettingsModal } from './components/SettingsModal';
 
 const API_BASE = 'http://localhost:8080/api'; // this is where spring boot runs
 
@@ -14,6 +15,7 @@ function App() {
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -214,10 +216,14 @@ function App() {
           <button className="add-student-btn" onClick={handleAddStudentClick}>
             + Add Student
           </button>
+          <button className="logout-btn" onClick={() => setShowSettingsModal(true)} title="Settings">
+            ⚙️ Settings
+          </button>
           <button className="logout-btn" onClick={handleLogout}>
             Logout
           </button>
         </div>
+
       </header>
 
       <main>
@@ -266,7 +272,16 @@ function App() {
           onAddStudent={handleCreateStudent}
         />
       )}
+
+      {showSettingsModal && currentUser && (
+        <SettingsModal
+          user={currentUser}
+          onClose={() => setShowSettingsModal(false)}
+          onUpdateUser={setCurrentUser}
+        />
+      )}
     </div>
+
   );
 }
 

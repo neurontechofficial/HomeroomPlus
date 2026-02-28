@@ -56,13 +56,14 @@ public class StudentController {
         behaviorRecordRepository.save(record);
 
         // Send emails
+        String secretaryEmail = student.getClassroom().getUser().getSecretaryEmail();
         if (student.getStudentEmail() != null && !student.getStudentEmail().trim().isEmpty()) {
-            mailerooService.sendPointsEmail(student.getStudentEmail(), student.getName(), request.getPoints(),
-                    request.getDescription());
+            mailerooService.sendPointsEmail(student.getStudentEmail(), secretaryEmail, student.getName(),
+                    request.getPoints(), request.getDescription());
         }
         if (student.getParentEmail() != null && !student.getParentEmail().trim().isEmpty()) {
-            mailerooService.sendPointsEmail(student.getParentEmail(), student.getName(), request.getPoints(),
-                    request.getDescription());
+            mailerooService.sendPointsEmail(student.getParentEmail(), secretaryEmail, student.getName(),
+                    request.getPoints(), request.getDescription());
         }
 
         // Refresh student to include new record in total points mapping

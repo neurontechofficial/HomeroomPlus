@@ -22,13 +22,11 @@ public class MailerooService {
     @Value("${maileroo.from.name:HomeroomPlus}")
     private String fromName;
 
-    @Value("${maileroo.secretary.email:}")
-    private String secretaryEmail;
-
     private final RestTemplate restTemplate = new RestTemplate();
     private static final String MAILEROO_API_URL = "https://smtp.maileroo.com/api/v2/emails/send";
 
-    public void sendPointsEmail(String toEmail, String studentName, int points, String description) {
+    public void sendPointsEmail(String toEmail, String secretaryEmail, String studentName, int points,
+            String description) {
         if (toEmail == null || toEmail.trim().isEmpty()) {
             return;
         }

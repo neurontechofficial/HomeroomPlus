@@ -22,6 +22,9 @@ public class User {
     @JsonIgnore
     private String password;
 
+    @Column
+    private String secretaryEmail;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Classroom> classrooms = new ArrayList<>();
 }
